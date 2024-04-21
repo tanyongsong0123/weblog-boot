@@ -34,6 +34,7 @@ public class UpdateArticleReqVO {
 
     private String summary;
 
+
     @NotNull(message = "文章分类不能为空")
     private Long categoryId;
 
