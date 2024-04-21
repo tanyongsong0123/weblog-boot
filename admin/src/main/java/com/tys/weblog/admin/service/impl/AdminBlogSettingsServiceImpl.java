@@ -2,16 +2,19 @@ package com.tys.weblog.admin.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tys.weblog.admin.convert.BlogSettingsConvert;
+import com.tys.weblog.admin.modle.vo.blogsettings.FindBlogSettingsRspVO;
 import com.tys.weblog.admin.modle.vo.blogsettings.UpdateBlogSettingsReqVO;
 import com.tys.weblog.admin.service.AdminBlogSettingsService;
 import com.tys.weblog.common.domain.dos.BlogSettingsDO;
 import com.tys.weblog.common.domain.mapper.BlogSettingsMapper;
 import com.tys.weblog.common.utils.Response;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AdminBlogSettingsServiceImpl extends ServiceImpl<BlogSettingsMapper, BlogSettingsDO> implements AdminBlogSettingsService {
-
+    @Autowired
+    private BlogSettingsMapper blogSettingsMapper;
     @Override
     public Response updateBlogSettings(UpdateBlogSettingsReqVO updateBlogSettingsReqVO) {
         // VO 转 DO
@@ -35,4 +38,21 @@ public class AdminBlogSettingsServiceImpl extends ServiceImpl<BlogSettingsMapper
         saveOrUpdate(blogSettingsDO);
         return Response.success();
     }
+
+    /**
+     * 获取博客设置详情
+     *
+     * @return
+     */
+    @Override
+    public Response findDetail() {
+        // 查询 ID 为 1 的记录
+        BlogSettingsDO blogSettingsDO = blogSettingsMapper.selectById(1L);
+
+        // DO 转 VO
+        FindBlogSettingsRspVO vo = BlogSettingsConvert.INSTANCE.convertDO2VO(blogSettingsDO);
+
+        return Response.success(vo);
+    }
+
 }
