@@ -1,13 +1,14 @@
 package com.tys.weblog.admin.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tys.weblog.admin.modle.vo.category.AddCategoryReqVO;
 import com.tys.weblog.admin.modle.vo.category.DeleteCategoryReqVO;
 import com.tys.weblog.admin.modle.vo.category.FindCategoryPageListReqVO;
 import com.tys.weblog.admin.modle.vo.category.FindCategoryPageListRspVO;
 import com.tys.weblog.admin.service.AdminCategoryService;
+import com.tys.weblog.common.domain.dos.ArticleCategoryRelDO;
 import com.tys.weblog.common.domain.dos.CategoryDO;
+import com.tys.weblog.common.domain.mapper.ArticleCategoryRelMapper;
 import com.tys.weblog.common.domain.mapper.CategoryMapper;
 import com.tys.weblog.common.enums.ResponseCodeEnum;
 import com.tys.weblog.common.exception.BizException;
@@ -15,7 +16,6 @@ import com.tys.weblog.common.model.vo.SelectRspVO;
 import com.tys.weblog.common.utils.PageResponse;
 import com.tys.weblog.common.utils.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -31,6 +31,9 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
 
     @Autowired
     private CategoryMapper categoryMapper;
+
+    @Autowired
+    private ArticleCategoryRelMapper articleCategoryRelMapper;
 
     /**
      * 添加分类
@@ -93,16 +96,16 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
         return PageResponse.success(categoryDOPage, vos);
     }
 
-    @Override
-    public Response deleteCategory(DeleteCategoryReqVO deleteCategoryReqVO) {
-        // 分类 ID
-        Long categoryId = deleteCategoryReqVO.getId();
-
-        // 删除分类
-        categoryMapper.deleteById(categoryId);
-
-        return Response.success();
-    }
+//    @Override
+//    public Response deleteCategory(DeleteCategoryReqVO deleteCategoryReqVO) {
+//        // 分类 ID
+//        Long categoryId = deleteCategoryReqVO.getId();
+//
+//        // 删除分类
+//        categoryMapper.deleteById(categoryId);
+//
+//        return Response.success();
+//    }
 
 
 
@@ -125,5 +128,24 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
         }
 
         return Response.success(selectRspVOS);
+    }
+
+    @Override
+    public Response deleteCategory(DeleteCategoryReqVO deleteCategoryReqVO) {
+        // 分类 ID
+        Long categoryId = deleteCategoryReqVO.getId();
+
+        // 校验该分类下是否已经有文章，若有，则提示需要先删除分类下所有文章，才能删除
+        ArticleCategoryRelDO articleCategoryRelDO = articleCategoryRelMapper.selectOneByCategoryId(categoryId);
+
+        if (Objects.nonNull(articleCategoryRelDO)) {
+            log.warn("==> 此分类下包含文章，无法删除，categoryId: {}", categoryId);
+            throw new BizException(ResponseCodeEnum.CATEGORY_CAN_NOT_DELETE);
+        }
+
+        // 删除分类
+        categoryMapper.deleteById(categoryId);
+
+        return Response.success();
     }
 }
