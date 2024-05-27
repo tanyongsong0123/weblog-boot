@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev
+    active: prod
     # program arguments  >  VM options  >  Enviroment variables  >proties ??> yml??
 
 
